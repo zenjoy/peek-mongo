@@ -8,26 +8,18 @@ require 'atomic'
 # - :write
 
 # Instrument Mongo time
-class Mongo::Socket
-  def read_with_timing(*args, &block)
-    start = Time.now
-    read_without_timing(*args, &block)
+class Mongo::Server::Connection
+  def dispatch_with_timing(*args, &block)
+    timer = Hitimes::Interval.new
+    timer.start
+    dispatch_without_timing(*args, &block)
   ensure
-    update_counters(start)
+    timer.stop
+    update_counters(timer.duration)
   end
-  alias_method_chain :read, :timing
+  alias_method_chain :dispatch, :timing
 
-  def write_with_timing(*args, &block)
-    start = Time.now
-    write_without_timing(*args, &block)
-  ensure
-    update_counters(start)
-  end
-  alias_method_chain :write, :timing
-
-  def update_counters(start)
-    duration = (Time.now - start)
-
+  def update_counters(duration)
     Peek::Views::Mongo.command_time.update { |value| value + duration }
   end
 end
