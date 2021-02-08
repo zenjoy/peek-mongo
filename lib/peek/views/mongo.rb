@@ -17,7 +17,9 @@ class Mongo::Server::Connection
     timer.stop
     update_counters(timer.duration)
   end
-  alias_method_chain :dispatch, :timing
+  # alias_method_chain :dispatch, :timing
+  alias dispatch_without_timing dispatch
+  alias dispatch dispatch_with_timing
 
   def update_counters(duration)
     Peek::Views::Mongo.command_time.update { |value| value + duration }
@@ -34,7 +36,9 @@ module Mongo
         Peek::Views::Mongo.command_count.update { |value| value + 1 }
       end
 
-      alias_method_chain :payload, :counter
+      # alias_method_chain :payload, :counter
+      alias payload_without_counter payload
+      alias payload payload_with_counter
     end
 
     class Insert
@@ -44,7 +48,9 @@ module Mongo
         Peek::Views::Mongo.command_count.update { |value| value + 1 }
       end
 
-      alias_method_chain :payload, :counter
+      # alias_method_chain :payload, :counter
+      alias payload_without_counter payload
+      alias payload payload_with_counter
     end
 
     class Update
@@ -54,7 +60,9 @@ module Mongo
         Peek::Views::Mongo.command_count.update { |value| value + 1 }
       end
 
-      alias_method_chain :payload, :counter
+      # alias_method_chain :payload, :counter
+      alias payload_without_counter payload
+      alias payload payload_with_counter
     end
 
     class GetMore
@@ -64,7 +72,9 @@ module Mongo
         Peek::Views::Mongo.command_count.update { |value| value + 1 }
       end
 
-      alias_method_chain :payload, :counter
+      # alias_method_chain :payload, :counter
+      alias payload_without_counter payload
+      alias payload payload_with_counter
     end
 
     class Delete
@@ -74,7 +84,9 @@ module Mongo
         Peek::Views::Mongo.command_count.update { |value| value + 1 }
       end
 
-      alias_method_chain :payload, :counter
+      # alias_method_chain :payload, :counter
+      alias payload_without_counter payload
+      alias payload payload_with_counter
     end
   end
 end
@@ -92,9 +104,9 @@ module Peek
       def formatted_duration
         ms = duration * 1000
         if ms >= 1000
-          "%.2fms" % ms
+          '%.2fms' % ms
         else
-          "%.0fms" % ms
+          '%.0fms' % ms
         end
       end
 
@@ -107,7 +119,7 @@ module Peek
       end
 
       def results
-        { :duration => formatted_duration, :calls => calls }
+        { duration: formatted_duration, calls: calls }
       end
 
       private
